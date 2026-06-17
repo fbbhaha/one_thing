@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>星空人生</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { overflow: hidden; background: #000; font-family: -apple-system, sans-serif; }
+        #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
+
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 10;
+        }
+
+        .title {
+            position: absolute; top: 40px; left: 0; right: 0; text-align: center;
+        }
+        .title h1 {
+            font-size: 26px; color: #ffd700; letter-spacing: 6px;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+        }
+        .title p {
+            font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 8px; letter-spacing: 2px;
+        }
+
+        .countdown {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .countdown .days {
+            font-size: 72px; font-weight: 700;
+            background: linear-gradient(135deg, #ffd700, #ff8c42);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .countdown .label {
+            font-size: 12px; color: rgba(255,255,255,0.5); letter-spacing: 3px; margin-top: 5px;
+        }
+
+        .hint {
+            position: absolute; bottom: 100px; left: 0; right: 0;
+            text-align: center; font-size: 11px; color: rgba(255,255,255,0.25);
+            animation: pulse 3s infinite;
+        }
+        @keyframes pulse { 0%,100% { opacity: 0.25; } 50% { opacity: 0.5; } }
+
+        .add-btn {
+            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+            width: 50px; height: 50px; border-radius: 50%;
+            background: linear-gradient(135deg, #ffd700, #ff8c42);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; color: #000; cursor: pointer;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+            pointer-events: auto; transition: all 0.3s;
+        }
+        .add-btn:hover { transform: translateX(-50%) scale(1.1); }
+
+        .progress-ring {
+            position: absolute; bottom: 110px; right: 30px;
+            width: 60px; height: 60px;
+        }
+        .progress-ring svg { transform: rotate(-90deg); }
+        .progress-ring circle {
+            fill: none; stroke-width: 3;
+        }
+        .progress-ring .bg { stroke: rgba(255,255,255,0.1); }
+        .progress-ring .progress {
+            stroke: #ffd700; stroke-linecap: round;
+            stroke-dasharray: 157; stroke-dashoffset: 110;
+            filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5));
+        }
+        .progress-ring .text {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 11px; color: #ffd700; font-weight: 600;
+        }
+
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(10px);
+            z-index: 100; align-items: center; justify-content: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: rgba(15, 15, 35, 0.95); border-radius: 20px;
+            padding: 25px; width: 85%; max-width: 320px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } }
+        .modal-title {
+            font-size: 18px; color: #ffd700; text-align: center; margin-bottom: 20px;
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-label { font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 6px; display: block; }
+        .form-input {
+            width: 100%; padding: 12px; border-radius: 10px;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: #fff; font-size: 14px; outline: none;
+        }
+        .form-input:focus { border-color: #ffd700; }
+        .categories {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px;
+        }
+        .cat {
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            padding: 10px 5px; border-radius: 10px;
+            background: rgba(255,255,255,0.03); cursor: pointer;
+            border: 1px solid transparent; transition: all 0.3s;
+        }
+        .cat:hover { background: rgba(255,215,0,0.1); }
+        .cat.active { background: rgba(255,215,0,0.15); border-color: #ffd700; }
+        .cat-icon { font-size: 20px; }
+        .cat-name { font-size: 9px; color: rgba(255,255,255,0.4); }
+        .cat.active .cat-name { color: #ffd700; }
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        .btn {
+            flex: 1; padding: 12px; border-radius: 10px; font-size: 13px;
+            cursor: pointer; border: none; transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #ffd700, #ff8c42); color: #000;
+        }
+        .btn-secondary { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+
+    <div class="overlay">
+        <div class="title">
+            <h1>星空人生</h1>
+            <p>愿每一颗星，都照亮你的路</p>
+        </div>
+
+        <div class="countdown">
+            <div class="days" id="daysCount">9,125</div>
+            <div class="label">星际时光</div>
+        </div>
+
+        <div class="progress-ring">
+            <svg width="60" height="60">
+                <circle class="bg" cx="30" cy="30" r="25"></circle>
+                <circle class="progress" cx="30" cy="30" r="25"></circle>
+            </svg>
+            <span class="text">31%</span>
+        </div>
+
+        <p class="hint">✧ 拖拽旋转星空 ✧</p>
+
+        <div class="add-btn" onclick="openModal()">✦</div>
+    </div>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-title">✦ 许下星愿</div>
+            <div class="form-group">
+                <label class="form-label">选择星域</label>
+                <div class="categories">
+                    <div class="cat" onclick="selectCat(this)"><span class="cat-icon">🎓</span><span class="cat-name">学业</span></div>
+                    <div class="cat" onclick="selectCat(this)"><span class="cat-icon">💼</span><span class="cat-name">事业</span></div>
+                    <div class="cat" onclick="selectCat(this)"><span class="cat-icon">❤️</span><span class="cat-name">情感</span></div>
+                    <div class="cat" onclick="selectCat(this)"><span class="cat-icon">👨‍👩‍👧</span><span class="cat-name">家庭</span></div>
+                    <div class="cat" onclick="selectCat(this)"><span class="cat-icon">✈️</span><span class="cat-name">旅行</span></div>
+                    <div class="cat" onclick="selectCat(this)"><span class="cat-icon">🏥</span><span class="cat-name">健康</span></div>
+                    <div class="cat" onclick="selectCat(this)"><span class="cat-icon">🎯</span><span class="cat-name">成长</span></div>
+                    <div class="cat" onclick="selectCat(this)"><span class="cat-icon">💰</span><span class="cat-name">财务</span></div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">星愿名称</label>
+                <input type="text" class="form-input" placeholder="写下你的愿望...">
+            </div>
+            <div class="form-group">
+                <label class="form-label">发生日期</label>
+                <input type="date" class="form-input">
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary">✦ 点亮</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer, stars = [], constellations = [], shootingStars = [];
+        let isDragging = false;
+        let prevMouse = { x: 0, y: 0 };
+        let targetRot = { x: 0, y: 0 };
+        let currentRot = { x: 0, y: 0 };
+        let autoRotate = true;
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x000011, 0.0006);
+
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.z = 500;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            createStarfield();
+            createMilestones();
+            createConstellations();
+            setupControls();
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+            animate();
+        }
+
+        function createStarfield() {
+            for (let i = 0; i < 4000; i++) {
+                const geo = new THREE.SphereGeometry(0.4 + Math.random() * 0.3, 6, 6);
+                const mat = new THREE.MeshBasicMaterial({
+                    color: 0xffffff,
+                    transparent: true,
+                    opacity: 0.3 + Math.random() * 0.4
+                });
+                const star = new THREE.Mesh(geo, mat);
+                
+                const r = 400 + Math.random() * 600;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                
+                star.position.set(
+                    r * Math.sin(phi) * Math.cos(theta),
+                    r * Math.sin(phi) * Math.sin(theta),
+                    r * Math.cos(phi)
+                );
+                
+                star.userData = {
+                    baseOpacity: mat.opacity,
+                    speed: Math.random() * 0.02 + 0.01,
+                    offset: Math.random() * Math.PI * 2
+                };
+                
+                stars.push(star);
+                scene.add(star);
+            }
+        }
+
+        function createMilestones() {
+            const data = [
+                { name: '毕业', x: -200, y: 100, z: 0, done: true },
+                { name: '工作', x: -120, y: 30, z: 60, done: true },
+                { name: '挚爱', x: -30, y: -50, z: -40, done: true },
+                { name: '订婚', x: 80, y: -120, z: 30, done: false },
+                { name: '买房', x: 180, y: -60, z: -60, done: false },
+                { name: '退休', x: 50, y: 200, z: -120, done: false }
+            ];
+
+            data.forEach((m, i) => {
+                const group = new THREE.Group();
+                
+                // Core
+                const coreGeo = new THREE.SphereGeometry(m.done ? 10 : 6, 16, 16);
+                const coreMat = new THREE.MeshBasicMaterial({
+                    color: m.done ? 0xffffff : 0x666688
+                });
+                group.add(new THREE.Mesh(coreGeo, coreMat));
+
+                if (m.done) {
+                    // Glow layers
+                    [20, 35].forEach((r, idx) => {
+                        const geo = new THREE.SphereGeometry(r, 16, 16);
+                        const mat = new THREE.MeshBasicMaterial({
+                            color: 0xffd700,
+                            transparent: true,
+                            opacity: 0.15 - idx * 0.05
+                        });
+                        group.add(new THREE.Mesh(geo, mat));
+                    });
+
+                    // Ring
+                    const ringGeo = new THREE.RingGeometry(25, 27, 32);
+                    const ringMat = new THREE.MeshBasicMaterial({
+                        color: 0xffd700, transparent: true, opacity: 0.4, side: THREE.DoubleSide
+                    });
+                    const ring = new THREE.Mesh(ringGeo, ringMat);
+                    ring.rotation.x = Math.PI / 2;
+                    group.add(ring);
+                }
+
+                group.position.set(m.x, m.y, m.z);
+                group.userData = { ...m, baseY: m.y, ring: group.children[3] };
+                
+                stars.push(group);
+                scene.add(group);
+            });
+        }
+
+        function createConstellations() {
+            const paths = [
+                [[-200, 100, 0], [-120, 30, 60], [-30, -50, -40]],
+                [[-30, -50, -40], [80, -120, 30], [180, -60, -60]],
+                [[180, -60, -60], [50, 200, -120]]
+            ];
+
+            paths.forEach(path => {
+                for (let i = 0; i < path.length - 1; i++) {
+                    const start = new THREE.Vector3(...path[i]);
+                    const end = new THREE.Vector3(...path[i + 1]);
+                    const points = [];
+                    for (let t = 0; t <= 1; t += 0.05) {
+                        points.push(new THREE.Vector3().lerpVectors(start, end, t));
+                    }
+                    const geo = new THREE.BufferGeometry().setFromPoints(points);
+                    const mat = new THREE.LineBasicMaterial({ color: 0x334455, transparent: true, opacity: 0.25 });
+                    constellations.push(new THREE.Line(geo, mat));
+                    scene.add(constellations[constellations.length - 1]);
+                }
+            });
+        }
+
+        function createShootingStar() {
+            if (shootingStars.length >= 3) return;
+            
+            const x = (Math.random() - 0.5) * 500;
+            const y = 200 + Math.random() * 150;
+            const points = [];
+            for (let i = 0; i < 15; i++) {
+                points.push(new THREE.Vector3(x + i * 12, y - i * 8, Math.random() * 15 - 7));
+            }
+            const geo = new THREE.BufferGeometry().setFromPoints(points);
+            const mat = new THREE.LineBasicMaterial({ color: 0xffd700, transparent: true, opacity: 1 });
+            const ss = new THREE.Line(geo, mat);
+            ss.userData = { life: 50, speed: 6 + Math.random() * 3 };
+            shootingStars.push(ss);
+            scene.add(ss);
+        }
+
+        function setupControls() {
+            const cvs = renderer.domElement;
+            
+            const onStart = (x, y) => {
+                isDragging = true;
+                autoRotate = false;
+                prevMouse = { x, y };
+            };
+            
+            const onMove = (x, y) => {
+                if (!isDragging) return;
+                targetRot.y += (x - prevMouse.x) * 0.005;
+                targetRot.x += (y - prevMouse.y) * 0.005;
+                targetRot.x = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, targetRot.x));
+                prevMouse = { x, y };
+            };
+            
+            const onEnd = () => {
+                isDragging = false;
+                setTimeout(() => { autoRotate = true; }, 3000);
+            };
+
+            cvs.addEventListener('mousedown', e => onStart(e.clientX, e.clientY));
+            cvs.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
+            cvs.addEventListener('mouseup', onEnd);
+            cvs.addEventListener('mouseleave', onEnd);
+
+            cvs.addEventListener('touchstart', e => onStart(e.touches[0].clientX, e.touches[0].clientY));
+            cvs.addEventListener('touchmove', e => onMove(e.touches[0].clientX, e.touches[0].clientY));
+            cvs.addEventListener('touchend', onEnd);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const t = Date.now() * 0.001;
+
+            if (autoRotate) targetRot.y += 0.0008;
+            
+            currentRot.x += (targetRot.x - currentRot.x) * 0.05;
+            currentRot.y += (targetRot.y - currentRot.y) * 0.05;
+            scene.rotation.x = currentRot.x;
+            scene.rotation.y = currentRot.y;
+
+            // Star twinkle
+            stars.forEach((s, i) => {
+                if (s.userData.core !== undefined) {
+                    // Milestone star
+                    const scale = 1 + Math.sin(t * 1.5 + i) * 0.12;
+                    s.children[0].scale.set(scale, scale, scale);
+                    if (s.userData.ring) {
+                        s.userData.ring.rotation.z = t * 0.4;
+                        s.userData.ring.material.opacity = 0.3 + Math.sin(t * 2 + i) * 0.15;
+                    }
+                    // Glow pulse
+                    if (s.children[1]) {
+                        const gScale = 1 + Math.sin(t * 1.2 + i) * 0.15;
+                        s.children[1].scale.set(gScale, gScale, gScale);
+                    }
+                    if (s.children[2]) {
+                        const g2Scale = 1 + Math.sin(t * 0.8 + i) * 0.1;
+                        s.children[2].scale.set(g2Scale, g2Scale, g2Scale);
+                    }
+                    s.position.y = s.userData.baseY + Math.sin(t * 0.6 + i * 0.4) * 6;
+                } else {
+                    // Background star
+                    s.material.opacity = s.userData.baseOpacity + Math.sin(t * s.userData.speed * 20 + s.userData.offset) * 0.2;
+                }
+            });
+
+            // Shooting stars
+            if (Math.random() < 0.004) createShootingStar();
+            for (let i = shootingStars.length - 1; i >= 0; i--) {
+                const ss = shootingStars[i];
+                ss.position.x += ss.userData.speed;
+                ss.position.y -= ss.userData.speed * 0.5;
+                ss.userData.life--;
+                ss.material.opacity = ss.userData.life / 50;
+                if (ss.userData.life <= 0) {
+                    scene.remove(ss);
+                    shootingStars.splice(i, 1);
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        function openModal() { document.getElementById('modal').classList.add('active'); }
+        function closeModal() { document.getElementById('modal').classList.remove('active'); }
+        function selectCat(el) {
+            document.querySelectorAll('.cat').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        init();
+    </script>
+</body>
+</html>
