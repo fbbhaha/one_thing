@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>星空人生 - 3D版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+            background: #000;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .ui-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 50px 30px 20px;
+            background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%);
+            text-align: center;
+        }
+
+        .app-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            margin-bottom: 8px;
+            letter-spacing: 4px;
+        }
+
+        .app-slogan {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 2px;
+        }
+
+        .countdown-card {
+            position: absolute;
+            top: 130px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10, 10, 30, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 20px;
+            padding: 20px 40px;
+            text-align: center;
+            pointer-events: auto;
+        }
+
+        .countdown-number {
+            font-size: 42px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffd700, #ff8c42);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .countdown-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 5px;
+            letter-spacing: 1px;
+        }
+
+        .milestones-panel {
+            position: absolute;
+            bottom: 120px;
+            left: 20px;
+            right: 20px;
+            background: rgba(10, 10, 30, 0.6);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            max-height: 35vh;
+            overflow-y: auto;
+            pointer-events: auto;
+        }
+
+        .milestones-panel::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .milestones-panel::-webkit-scrollbar-thumb {
+            background: rgba(255, 215, 0, 0.3);
+            border-radius: 2px;
+        }
+
+        .panel-title {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .milestone-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .milestone-item:hover {
+            background: rgba(255, 215, 0, 0.1);
+            transform: translateX(5px);
+        }
+
+        .milestone-item.completed {
+            border-left: 3px solid #ffd700;
+        }
+
+        .milestone-item.uncompleted {
+            border-left: 3px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .milestone-icon {
+            font-size: 24px;
+            margin-right: 12px;
+        }
+
+        .milestone-content {
+            flex: 1;
+        }
+
+        .milestone-name {
+            font-size: 14px;
+            color: #fff;
+            margin-bottom: 3px;
+        }
+
+        .milestone-item.uncompleted .milestone-name {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .milestone-date {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .milestone-status {
+            font-size: 10px;
+            padding: 4px 10px;
+            border-radius: 10px;
+            background: rgba(255, 215, 0, 0.15);
+            color: #ffd700;
+        }
+
+        .milestone-item.uncompleted .milestone-status {
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-around;
+            padding: 20px 30px 40px;
+            background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, transparent 100%);
+            pointer-events: auto;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item.active {
+            color: #ffd700;
+        }
+
+        .nav-icon {
+            font-size: 24px;
+        }
+
+        .add-btn {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffd700, #ff8c42);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            color: #000;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
+            margin-top: -25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .instruction {
+            position: absolute;
+            bottom: 200px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.3);
+            text-align: center;
+            pointer-events: none;
+            animation: fade 2s infinite;
+        }
+
+        @keyframes fade {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(180deg, rgba(20, 20, 50, 0.95) 0%, rgba(10, 10, 30, 0.95) 100%);
+            border-radius: 25px;
+            padding: 30px;
+            width: 90%;
+            max-width: 360px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            animation: modal-in 0.3s ease;
+        }
+
+        @keyframes modal-in {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #ffd700;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            border-color: #ffd700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .category-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            padding: 12px 8px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .category-item:hover {
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .category-item.active {
+            background: rgba(255, 215, 0, 0.15);
+            border-color: #ffd700;
+        }
+
+        .category-icon {
+            font-size: 22px;
+        }
+
+        .category-name {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .category-item.active .category-name {
+            color: #ffd700;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ffd700, #ff8c42);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stats-panel {
+            position: absolute;
+            top: 220px;
+            right: 20px;
+            background: rgba(10, 10, 30, 0.6);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            min-width: 120px;
+            pointer-events: auto;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffd700;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+
+    <div class="ui-overlay">
+        <div class="header">
+            <h1 class="app-title">星空人生</h1>
+            <p class="app-slogan">愿每一颗星，都照亮你的路</p>
+        </div>
+
+        <div class="countdown-card">
+            <div class="countdown-number" id="daysCount">9,125</div>
+            <div class="countdown-label">已穿越的星际时光</div>
+        </div>
+
+        <div class="stats-panel">
+            <div class="stat-item">
+                <div class="stat-value">12</div>
+                <div class="stat-label">已点亮</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">8</div>
+                <div class="stat-label">等待中</div>
+            </div>
+        </div>
+
+        <p class="instruction">✧ 拖拽旋转星空 · 点击星星查看详情 ✧</p>
+
+        <div class="milestones-panel">
+            <div class="panel-title">✦ 星轨记录</div>
+            
+            <div class="milestone-item completed">
+                <span class="milestone-icon">🎓</span>
+                <div class="milestone-content">
+                    <div class="milestone-name">大学毕业</div>
+                    <div class="milestone-date">2020-06-20</div>
+                </div>
+                <span class="milestone-status">✦ 已点亮</span>
+            </div>
+
+            <div class="milestone-item completed">
+                <span class="milestone-icon">💼</span>
+                <div class="milestone-content">
+                    <div class="milestone-name">第一份工作</div>
+                    <div class="milestone-date">2020-08-15</div>
+                </div>
+                <span class="milestone-status">✦ 已点亮</span>
+            </div>
+
+            <div class="milestone-item completed">
+                <span class="milestone-icon">❤️</span>
+                <div class="milestone-content">
+                    <div class="milestone-name">遇见挚爱</div>
+                    <div class="milestone-date">2021-03-14</div>
+                </div>
+                <span class="milestone-status">✦ 已点亮</span>
+            </div>
+
+            <div class="milestone-item uncompleted">
+                <span class="milestone-icon">💍</span>
+                <div class="milestone-content">
+                    <div class="milestone-name">订婚</div>
+                    <div class="milestone-date">✨ 期待闪耀</div>
+                </div>
+                <span class="milestone-status">○ 等待中</span>
+            </div>
+
+            <div class="milestone-item uncompleted">
+                <span class="milestone-icon">🏠</span>
+                <div class="milestone-content">
+                    <div class="milestone-name">买房</div>
+                    <div class="milestone-date">✨ 期待闪耀</div>
+                </div>
+                <span class="milestone-status">○ 等待中</span>
+            </div>
+
+            <div class="milestone-item uncompleted">
+                <span class="milestone-icon">🚗</span>
+                <div class="milestone-content">
+                    <div class="milestone-name">买车</div>
+                    <div class="milestone-date">✨ 期待闪耀</div>
+                </div>
+                <span class="milestone-status">○ 等待中</span>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item active">
+                <span class="nav-icon">🌌</span>
+                <span>星轨</span>
+            </div>
+            <div class="nav-item">
+                <span class="nav-icon">✧</span>
+                <span>掠影</span>
+            </div>
+            <div class="add-btn" onclick="openModal()">✦</div>
+            <div class="nav-item">
+                <span class="nav-icon">🌙</span>
+                <span>星历</span>
+            </div>
+            <div class="nav-item">
+                <span class="nav-icon">☽</span>
+                <span>设置</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content">
+            <div class="modal-title">✦ 许下星愿</div>
+            
+            <div class="form-group">
+                <label class="form-label">选择星域</label>
+                <div class="category-grid">
+                    <div class="category-item" onclick="selectCategory(this)">
+                        <span class="category-icon">🎓</span>
+                        <span class="category-name">学业</span>
+                    </div>
+                    <div class="category-item" onclick="selectCategory(this)">
+                        <span class="category-icon">💼</span>
+                        <span class="category-name">事业</span>
+                    </div>
+                    <div class="category-item" onclick="selectCategory(this)">
+                        <span class="category-icon">❤️</span>
+                        <span class="category-name">情感</span>
+                    </div>
+                    <div class="category-item" onclick="selectCategory(this)">
+                        <span class="category-icon">👨‍👩‍👧</span>
+                        <span class="category-name">家庭</span>
+                    </div>
+                    <div class="category-item" onclick="selectCategory(this)">
+                        <span class="category-icon">✈️</span>
+                        <span class="category-name">旅行</span>
+                    </div>
+                    <div class="category-item" onclick="selectCategory(this)">
+                        <span class="category-icon">🏥</span>
+                        <span class="category-name">健康</span>
+                    </div>
+                    <div class="category-item" onclick="selectCategory(this)">
+                        <span class="category-icon">🎯</span>
+                        <span class="category-name">成长</span>
+                    </div>
+                    <div class="category-item" onclick="selectCategory(this)">
+                        <span class="category-icon">💰</span>
+                        <span class="category-name">财务</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">星愿名称</label>
+                <input type="text" class="form-input" placeholder="写下你的愿望...">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">发生的日期</label>
+                <input type="date" class="form-input">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">星光备注</label>
+                <input type="text" class="form-input" placeholder="记录这颗星星的故事...">
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary">✦ 点亮星辰</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer, stars = [], constellations = [], shootingStars = [];
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        let targetRotation = { x: 0, y: 0 };
+        let currentRotation = { x: 0, y: 0 };
+        let autoRotate = true;
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x000011, 0.0008);
+
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.z = 500;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            createStarfield();
+            createMilestoneStars();
+            createConstellations();
+            createAmbientParticles();
+
+            setupMouseControls();
+
+            window.addEventListener('resize', onWindowResize);
+            
+            animate();
+        }
+
+        function createStarfield() {
+            const starGeometry = new THREE.SphereGeometry(0.5, 8, 8);
+            
+            for (let i = 0; i < 3000; i++) {
+                const material = new THREE.MeshBasicMaterial({
+                    color: 0xffffff,
+                    transparent: true,
+                    opacity: Math.random() * 0.5 + 0.3
+                });
+                
+                const star = new THREE.Mesh(starGeometry, material);
+                
+                const radius = 300 + Math.random() * 700;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos(2 * Math.random() - 1);
+                
+                star.position.x = radius * Math.sin(phi) * Math.cos(theta);
+                star.position.y = radius * Math.sin(phi) * Math.sin(theta);
+                star.position.z = radius * Math.cos(phi);
+                
+                star.userData = {
+                    originalOpacity: material.opacity,
+                    twinkleSpeed: Math.random() * 0.02 + 0.01,
+                    twinkleOffset: Math.random() * Math.PI * 2
+                };
+                
+                stars.push(star);
+                scene.add(star);
+            }
+        }
+
+        function createMilestoneStars() {
+            const milestones = [
+                { name: '毕业', x: -150, y: 80, z: 0, completed: true, icon: '🎓' },
+                { name: '工作', x: -80, y: 20, z: 50, completed: true, icon: '💼' },
+                { name: '挚爱', x: 0, y: -40, z: -30, completed: true, icon: '❤️' },
+                { name: '订婚', x: 80, y: -100, z: 20, completed: false, icon: '💍' },
+                { name: '买房', x: 150, y: -40, z: -50, completed: false, icon: '🏠' },
+                { name: '买车', x: 180, y: 60, z: 0, completed: false, icon: '🚗' },
+                { name: '生子', x: 100, y: 120, z: 30, completed: false, icon: '👶' },
+                { name: '退休', x: -50, y: 180, z: -100, completed: false, icon: '🌴' }
+            ];
+
+            milestones.forEach((m, i) => {
+                const glowColor = m.completed ? 0xffd700 : 0x444466;
+                const coreColor = m.completed ? 0xffffff : 0x888899;
+                
+                const starGroup = new THREE.Group();
+                
+                const coreGeometry = new THREE.SphereGeometry(m.completed ? 8 : 5, 16, 16);
+                const coreMaterial = new THREE.MeshBasicMaterial({ 
+                    color: coreColor,
+                    transparent: true,
+                    opacity: 1
+                });
+                const core = new THREE.Mesh(coreGeometry, coreMaterial);
+                starGroup.add(core);
+
+                if (m.completed) {
+                    const glowGeometry = new THREE.SphereGeometry(15, 16, 16);
+                    const glowMaterial = new THREE.MeshBasicMaterial({
+                        color: glowColor,
+                        transparent: true,
+                        opacity: 0.3
+                    });
+                    const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+                    starGroup.add(glow);
+
+                    const outerGlowGeometry = new THREE.SphereGeometry(25, 16, 16);
+                    const outerGlowMaterial = new THREE.MeshBasicMaterial({
+                        color: glowColor,
+                        transparent: true,
+                        opacity: 0.1
+                    });
+                    const outerGlow = new THREE.Mesh(outerGlowGeometry, outerGlowMaterial);
+                    starGroup.add(outerGlow);
+                }
+
+                const ringGeometry = new THREE.RingGeometry(m.completed ? 20 : 12, m.completed ? 22 : 14, 32);
+                const ringMaterial = new THREE.MeshBasicMaterial({
+                    color: glowColor,
+                    transparent: true,
+                    opacity: m.completed ? 0.5 : 0.15,
+                    side: THREE.DoubleSide
+                });
+                const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+                ring.rotation.x = Math.PI / 2;
+                starGroup.add(ring);
+
+                starGroup.position.set(m.x, m.y, m.z);
+                starGroup.userData = { 
+                    milestone: m, 
+                    core: core, 
+                    glow: glow || null,
+                    ring: ring,
+                    originalY: m.y
+                };
+
+                stars.push(starGroup);
+                scene.add(starGroup);
+            });
+        }
+
+        function createConstellations() {
+            const constellationData = [
+                [[-150, 80, 0], [-80, 20, 50], [0, -40, -30]],
+                [[0, -40, -30], [80, -100, 20], [150, -40, -50], [180, 60, 0]],
+                [[180, 60, 0], [100, 120, 30], [-50, 180, -100]]
+            ];
+
+            constellationData.forEach(path => {
+                for (let i = 0; i < path.length - 1; i++) {
+                    const start = new THREE.Vector3(...path[i]);
+                    const end = new THREE.Vector3(...path[i + 1]);
+                    
+                    const points = [];
+                    for (let t = 0; t <= 1; t += 0.05) {
+                        points.push(new THREE.Vector3().lerpVectors(start, end, t));
+                    }
+                    
+                    const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+                    const lineMaterial = new THREE.LineBasicMaterial({
+                        color: 0x334455,
+                        transparent: true,
+                        opacity: 0.3
+                    });
+                    
+                    const line = new THREE.Line(lineGeometry, lineMaterial);
+                    constellations.push(line);
+                    scene.add(line);
+                }
+            });
+        }
+
+        function createAmbientParticles() {
+            const particleCount = 200;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            
+            for (let i = 0; i < particleCount; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * 800;
+                positions[i * 3 + 1] = (Math.random() - 0.5) * 800;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 800;
+            }
+            
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            
+            const material = new THREE.PointsMaterial({
+                color: 0x6699ff,
+                size: 2,
+                transparent: true,
+                opacity: 0.4
+            });
+            
+            const particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+        }
+
+        function createShootingStar() {
+            const startX = (Math.random() - 0.5) * 600;
+            const startY = 200 + Math.random() * 200;
+            
+            const points = [];
+            for (let i = 0; i < 20; i++) {
+                points.push(new THREE.Vector3(
+                    startX + i * 15,
+                    startY - i * 10,
+                    Math.random() * 20 - 10
+                ));
+            }
+            
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const material = new THREE.LineBasicMaterial({
+                color: 0xffd700,
+                transparent: true,
+                opacity: 1
+            });
+            
+            const shootingStar = new THREE.Line(geometry, material);
+            shootingStar.userData = {
+                life: 60,
+                speed: 8 + Math.random() * 4
+            };
+            
+            shootingStars.push(shootingStar);
+            scene.add(shootingStar);
+        }
+
+        function setupMouseControls() {
+            const canvas = renderer.domElement;
+            
+            canvas.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                autoRotate = false;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+            
+            canvas.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                
+                const deltaX = e.clientX - previousMousePosition.x;
+                const deltaY = e.clientY - previousMousePosition.y;
+                
+                targetRotation.y += deltaX * 0.005;
+                targetRotation.x += deltaY * 0.005;
+                
+                targetRotation.x = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, targetRotation.x));
+                
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+            
+            canvas.addEventListener('mouseup', () => {
+                isDragging = false;
+                setTimeout(() => { autoRotate = true; }, 3000);
+            });
+            
+            canvas.addEventListener('mouseleave', () => {
+                isDragging = false;
+            });
+
+            canvas.addEventListener('touchstart', (e) => {
+                isDragging = true;
+                autoRotate = false;
+                previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            });
+            
+            canvas.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                
+                const deltaX = e.touches[0].clientX - previousMousePosition.x;
+                const deltaY = e.touches[0].clientY - previousMousePosition.y;
+                
+                targetRotation.y += deltaX * 0.005;
+                targetRotation.x += deltaY * 0.005;
+                
+                targetRotation.x = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, targetRotation.x));
+                
+                previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            });
+            
+            canvas.addEventListener('touchend', () => {
+                isDragging = false;
+                setTimeout(() => { autoRotate = true; }, 3000);
+            });
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const time = Date.now() * 0.001;
+            
+            if (autoRotate) {
+                targetRotation.y += 0.001;
+            }
+            
+            currentRotation.x += (targetRotation.x - currentRotation.x) * 0.05;
+            currentRotation.y += (targetRotation.y - currentRotation.y) * 0.05;
+            
+            scene.rotation.x = currentRotation.x;
+            scene.rotation.y = currentRotation.y;
+            
+            stars.forEach((star, i) => {
+                if (star.userData && star.userData.originalOpacity !== undefined) {
+                    star.material.opacity = star.userData.originalOpacity + 
+                        Math.sin(time * star.userData.twinkleSpeed * 10 + star.userData.twinkleOffset) * 0.3;
+                }
+                
+                if (star.userData && star.userData.core) {
+                    const scale = 1 + Math.sin(time * 2 + i) * 0.1;
+                    star.userData.core.scale.set(scale, scale, scale);
+                    
+                    if (star.userData.glow) {
+                        const glowScale = 1 + Math.sin(time * 1.5 + i) * 0.2;
+                        star.userData.glow.scale.set(glowScale, glowScale, glowScale);
+                        star.userData.glow.material.opacity = 0.2 + Math.sin(time * 2 + i) * 0.1;
+                    }
+                    
+                    if (star.userData.ring) {
+                        star.userData.ring.rotation.z = time * 0.5;
+                    }
+                    
+                    star.position.y = star.userData.originalY + Math.sin(time * 0.8 + i * 0.5) * 5;
+                }
+            });
+            
+            if (Math.random() < 0.005 && shootingStars.length < 3) {
+                createShootingStar();
+            }
+            
+            for (let i = shootingStars.length - 1; i >= 0; i--) {
+                const ss = shootingStars[i];
+                ss.position.x += ss.userData.speed;
+                ss.position.y -= ss.userData.speed * 0.5;
+                ss.userData.life--;
+                
+                ss.material.opacity = ss.userData.life / 60;
+                
+                if (ss.userData.life <= 0) {
+                    scene.remove(ss);
+                    shootingStars.splice(i, 1);
+                }
+            }
+            
+            renderer.render(scene, camera);
+        }
+
+        function openModal() {
+            document.getElementById('modalOverlay').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('active');
+        }
+
+        function selectCategory(el) {
+            document.querySelectorAll('.category-item').forEach(item => item.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function updateCountdown() {
+            const birthDate = new Date('1995-01-01');
+            const now = new Date();
+            const diff = now - birthDate;
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            
+            document.getElementById('daysCount').textContent = days.toLocaleString();
+        }
+
+        init();
+        updateCountdown();
+        setInterval(updateCountdown, 60000);
+    </script>
+</body>
+</html>
