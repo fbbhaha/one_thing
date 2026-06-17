@@ -683,6 +683,7 @@
                 const coreColor = m.completed ? 0xffffff : 0x888899;
                 
                 const starGroup = new THREE.Group();
+                let glow = null;
                 
                 const coreGeometry = new THREE.SphereGeometry(m.completed ? 8 : 5, 16, 16);
                 const coreMaterial = new THREE.MeshBasicMaterial({ 
@@ -700,7 +701,7 @@
                         transparent: true,
                         opacity: 0.3
                     });
-                    const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+                    glow = new THREE.Mesh(glowGeometry, glowMaterial);
                     starGroup.add(glow);
 
                     const outerGlowGeometry = new THREE.SphereGeometry(25, 16, 16);
