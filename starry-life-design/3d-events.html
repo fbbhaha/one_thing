@@ -56,6 +56,159 @@
         }
         .add-btn:hover { transform: translateX(-50%) scale(1.1); }
 
+        .menu-btn {
+            position: absolute; top: 40px; left: 30px;
+            width: 40px; height: 40px; border-radius: 50%;
+            background: rgba(10, 10, 30, 0.6); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; pointer-events: auto; transition: all 0.3s;
+            z-index: 20;
+        }
+        .menu-btn:hover { background: rgba(255, 215, 0, 0.15); border-color: rgba(255, 215, 0, 0.3); }
+        .menu-btn span {
+            display: block; width: 16px; height: 1.5px; background: #ffd700;
+            position: relative;
+        }
+        .menu-btn span:before, .menu-btn span:after {
+            content: ''; position: absolute; left: 0; width: 16px; height: 1.5px; background: #ffd700;
+        }
+        .menu-btn span:before { top: -5px; }
+        .menu-btn span:after { top: 5px; }
+
+        .drawer {
+            position: fixed; top: 0; left: -280px; width: 280px; height: 100%;
+            background: rgba(8, 8, 25, 0.95); backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 215, 0, 0.15);
+            z-index: 50; transition: left 0.3s ease;
+            pointer-events: auto; overflow-y: auto;
+        }
+        .drawer.active { left: 0; }
+        .drawer-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 40;
+            display: none; pointer-events: auto;
+        }
+        .drawer-overlay.active { display: block; }
+
+        .drawer-header {
+            padding: 50px 25px 30px; text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .drawer-header .avatar {
+            width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 12px;
+            background: radial-gradient(circle, #ffd700 0%, rgba(255, 215, 0, 0.2) 60%, transparent 80%);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px;
+        }
+        .drawer-header .name { font-size: 16px; color: #fff; margin-bottom: 4px; }
+        .drawer-header .motto { font-size: 11px; color: rgba(255,255,255,0.4); }
+
+        .drawer-menu { padding: 20px 0; }
+        .drawer-item {
+            display: flex; align-items: center; gap: 15px;
+            padding: 15px 25px; cursor: pointer; transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+        .drawer-item:hover {
+            background: rgba(255, 215, 0, 0.08);
+            border-left-color: #ffd700;
+        }
+        .drawer-item.active {
+            background: rgba(255, 215, 0, 0.12);
+            border-left-color: #ffd700;
+        }
+        .drawer-item .icon { font-size: 20px; width: 24px; text-align: center; }
+        .drawer-item .label { font-size: 14px; color: rgba(255,255,255,0.8); }
+        .drawer-item .arrow { margin-left: auto; font-size: 12px; color: rgba(255,255,255,0.3); }
+
+        .drawer-divider {
+            height: 1px; background: rgba(255,255,255,0.05); margin: 10px 25px;
+        }
+
+        .drawer-footer {
+            padding: 20px 25px; font-size: 10px; color: rgba(255,255,255,0.2);
+            text-align: center;
+        }
+
+        .module-page {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(180deg, #0a0a1a 0%, #1a1a3e 50%, #0d0d2b 100%);
+            z-index: 30; overflow-y: auto; pointer-events: auto;
+        }
+        .module-page.active { display: block; }
+        .module-header {
+            position: sticky; top: 0; display: flex; align-items: center; gap: 15px;
+            padding: 50px 20px 15px; background: rgba(10, 10, 26, 0.9); backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05); z-index: 5;
+        }
+        .back-btn {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex; align-items: center; justify-content: center;
+            color: #ffd700; font-size: 22px; cursor: pointer; transition: all 0.3s;
+        }
+        .back-btn:hover { background: rgba(255, 215, 0, 0.15); }
+        .module-title { font-size: 18px; color: #ffd700; font-weight: 600; }
+        .module-content { padding: 20px; padding-bottom: 60px; }
+
+        .timeline-item {
+            display: flex; gap: 15px; padding: 15px; margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.03); border-radius: 12px;
+            border-left: 3px solid #ffd700;
+        }
+        .timeline-item .date { font-size: 12px; color: #ff8c42; min-width: 50px; font-weight: 500; }
+        .timeline-item .content { flex: 1; }
+        .timeline-item .event { font-size: 14px; color: #fff; margin-bottom: 3px; }
+        .timeline-item .note { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.4; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 25px; }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03); border-radius: 15px; padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05); text-align: center;
+        }
+        .stat-card .num {
+            font-size: 32px; font-weight: 700;
+            background: linear-gradient(135deg, #ffd700, #ff8c42);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .stat-card .lbl { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 5px; }
+
+        .section-title { font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 12px; }
+
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 20px; }
+        .cal-day {
+            aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+            font-size: 12px; color: rgba(255,255,255,0.5); border-radius: 8px;
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .cal-day.has-event { background: rgba(255, 215, 0, 0.15); color: #ffd700; }
+        .cal-day.today { border: 1px solid #ffd700; }
+
+        .eternal-star-item {
+            display: flex; align-items: center; gap: 15px; padding: 15px; margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.03); border-radius: 12px;
+            border-left: 3px solid rgba(255, 215, 0, 0.5);
+        }
+        .eternal-star-item .star-icon { font-size: 24px; }
+        .eternal-star-item .info { flex: 1; }
+        .eternal-star-item .name { font-size: 14px; color: #fff; }
+        .eternal-star-item .years { font-size: 11px; color: rgba(255,255,255,0.4); }
+
+        .setting-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px; margin-bottom: 8px; background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px; cursor: pointer;
+        }
+        .setting-item .label { font-size: 14px; color: rgba(255,255,255,0.8); }
+        .setting-item .value { font-size: 12px; color: rgba(255,255,255,0.4); }
+
+        .empty-hint {
+            text-align: center; padding: 60px 20px; color: rgba(255,255,255,0.3);
+            font-size: 13px;
+        }
+        .empty-hint .icon { font-size: 40px; margin-bottom: 15px; opacity: 0.5; }
+
         .progress-ring {
             position: absolute; bottom: 110px; right: 30px;
             width: 60px; height: 60px;
@@ -144,6 +297,8 @@
     <div id="canvas-container"></div>
 
     <div class="overlay">
+        <div class="menu-btn" onclick="toggleDrawer()"><span></span></div>
+
         <div class="title">
             <h1>星空人生</h1>
             <p>愿每一颗星，都照亮你的路</p>
@@ -165,6 +320,49 @@
         <p class="hint">✧ 拖拽旋转 · 点击星星查看 ✧</p>
 
         <div class="add-btn" onclick="openModal()">✦</div>
+    </div>
+
+    <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
+    <div class="drawer" id="drawer">
+        <div class="drawer-header">
+            <div class="avatar">🌟</div>
+            <div class="name">星旅者</div>
+            <div class="motto">愿每一颗星，都照亮你的路</div>
+        </div>
+        <div class="drawer-menu">
+            <div class="drawer-item active" onclick="switchModule('starry', this)">
+                <span class="icon">🌌</span>
+                <span class="label">星轨</span>
+                <span class="arrow">›</span>
+            </div>
+            <div class="drawer-item" onclick="switchModule('timeline', this)">
+                <span class="icon">✨</span>
+                <span class="label">星辰往事</span>
+                <span class="arrow">›</span>
+            </div>
+            <div class="drawer-item" onclick="switchModule('stats', this)">
+                <span class="icon">✧</span>
+                <span class="label">星空掠影</span>
+                <span class="arrow">›</span>
+            </div>
+            <div class="drawer-item" onclick="switchModule('calendar', this)">
+                <span class="icon">🌙</span>
+                <span class="label">星历</span>
+                <span class="arrow">›</span>
+            </div>
+            <div class="drawer-divider"></div>
+            <div class="drawer-item" onclick="switchModule('eternal', this)">
+                <span class="icon">⭐</span>
+                <span class="label">永恒守护</span>
+                <span class="arrow">›</span>
+            </div>
+            <div class="drawer-item" onclick="switchModule('settings', this)">
+                <span class="icon">☽</span>
+                <span class="label">设置</span>
+                <span class="arrow">›</span>
+            </div>
+        </div>
+        <div class="drawer-footer">星空人生 v1.0 · 愿星光照亮你</div>
     </div>
 
     <div class="star-card" id="starCard">
@@ -204,6 +402,14 @@
                 <button class="btn btn-primary">✦ 点亮</button>
             </div>
         </div>
+    </div>
+
+    <div class="module-page" id="modulePage">
+        <div class="module-header">
+            <div class="back-btn" onclick="backToStarry()">‹</div>
+            <div class="module-title" id="moduleTitle">星辰往事</div>
+        </div>
+        <div class="module-content" id="moduleContent"></div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -543,6 +749,145 @@
         function selectCat(el) {
             document.querySelectorAll('.cat').forEach(c => c.classList.remove('active'));
             el.classList.add('active');
+        }
+
+        function toggleDrawer() {
+            document.getElementById('drawer').classList.toggle('active');
+            document.getElementById('drawerOverlay').classList.toggle('active');
+        }
+
+        function switchModule(module, el) {
+            document.querySelectorAll('.drawer-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            toggleDrawer();
+
+            const titles = {
+                timeline: '星辰往事',
+                stats: '星空掠影',
+                calendar: '星历',
+                eternal: '永恒守护',
+                settings: '设置'
+            };
+
+            if (module === 'starry') return;
+
+            document.getElementById('moduleTitle').textContent = titles[module] || '';
+            document.getElementById('moduleContent').innerHTML = getModuleContent(module);
+            document.getElementById('modulePage').classList.add('active');
+        }
+
+        function backToStarry() {
+            document.getElementById('modulePage').classList.remove('active');
+            document.querySelectorAll('.drawer-item').forEach(i => i.classList.remove('active'));
+            document.querySelector('.drawer-item').classList.add('active');
+        }
+
+        function getModuleContent(module) {
+            if (module === 'timeline') {
+                return `
+                    <div class="timeline-item">
+                        <span class="date">2020-06</span>
+                        <div class="content">
+                            <div class="event">🎓 大学毕业</div>
+                            <div class="note">在校园的最后一天，阳光洒在学士帽上，青春落幕</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <span class="date">2020-08</span>
+                        <div class="content">
+                            <div class="event">💼 第一份工作</div>
+                            <div class="note">第一次穿上西装，紧张又兴奋，职场新人的旅程开始了</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <span class="date">2021-03</span>
+                        <div class="content">
+                            <div class="event">❤️ 遇见挚爱</div>
+                            <div class="note">在咖啡馆的偶然相遇，命运的红线悄然相连</div>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <span class="date">2024-12</span>
+                        <div class="content">
+                            <div class="event">✈️ 星际漫游 · 东京</div>
+                            <div class="note">在东京塔下许下新年愿望，希望新的一年更加充实</div>
+                        </div>
+                    </div>
+                `;
+            }
+            if (module === 'stats') {
+                return `
+                    <div class="stats-grid">
+                        <div class="stat-card"><div class="num">3</div><div class="lbl">已点亮星辰</div></div>
+                        <div class="stat-card"><div class="num">5</div><div class="lbl">等待闪耀</div></div>
+                        <div class="stat-card"><div class="num">9,125</div><div class="lbl">已穿越天数</div></div>
+                        <div class="stat-card"><div class="num">31%</div><div class="lbl">人生进度</div></div>
+                    </div>
+                    <div class="section-title">✧ 星域分布</div>
+                    <div class="stats-grid">
+                        <div class="stat-card"><div class="num">1</div><div class="lbl">学业</div></div>
+                        <div class="stat-card"><div class="num">1</div><div class="lbl">事业</div></div>
+                        <div class="stat-card"><div class="num">1</div><div class="lbl">情感</div></div>
+                        <div class="stat-card"><div class="num">0</div><div class="lbl">家庭</div></div>
+                    </div>
+                `;
+            }
+            if (module === 'calendar') {
+                let days = '';
+                for (let i = 1; i <= 30; i++) {
+                    const hasEvent = [6, 15, 20, 25].includes(i);
+                    const isToday = i === 17;
+                    days += `<div class="cal-day ${hasEvent ? 'has-event' : ''} ${isToday ? 'today' : ''}">${i}</div>`;
+                }
+                return `
+                    <div class="section-title">✧ 2026年6月</div>
+                    <div class="calendar-grid">${days}</div>
+                    <div class="section-title">✧ 近期星历</div>
+                    <div class="timeline-item">
+                        <span class="date">06-20</span>
+                        <div class="content"><div class="event">🎓 毕业纪念日</div><div class="note">已过6年</div></div>
+                    </div>
+                    <div class="timeline-item">
+                        <span class="date">08-15</span>
+                        <div class="content"><div class="event">💼 工作纪念日</div><div class="note">已过6年</div></div>
+                    </div>
+                `;
+            }
+            if (module === 'eternal') {
+                return `
+                    <div class="section-title">✧ 永恒的星辰</div>
+                    <div class="eternal-star-item">
+                        <span class="star-icon">⭐</span>
+                        <div class="info">
+                            <div class="name">爷爷</div>
+                            <div class="years">1940 - 2020 · 化作星光 6 年</div>
+                        </div>
+                    </div>
+                    <div class="eternal-star-item">
+                        <span class="star-icon">⭐</span>
+                        <div class="info">
+                            <div class="name">奶奶</div>
+                            <div class="years">1942 - 2022 · 化作星光 4 年</div>
+                        </div>
+                    </div>
+                    <div class="empty-hint" style="margin-top: 20px;">
+                        <div class="icon">✦</div>
+                        <div>为远方的亲人点一盏星灯<br>他们永远不会消失，只是化作了星光</div>
+                    </div>
+                `;
+            }
+            if (module === 'settings') {
+                return `
+                    <div class="setting-item"><span class="label">出生日期</span><span class="value">1995-01-01 ›</span></div>
+                    <div class="setting-item"><span class="label">预期寿命</span><span class="value">80 岁 ›</span></div>
+                    <div class="setting-item"><span class="label">人生格言</span><span class="value">愿每一颗星... ›</span></div>
+                    <div class="setting-item"><span class="label">深色模式</span><span class="value">始终开启 ›</span></div>
+                    <div class="setting-item"><span class="label">隐私锁</span><span class="value">未开启 ›</span></div>
+                    <div class="setting-item"><span class="label">数据备份</span><span class="value">导出 ›</span></div>
+                    <div class="setting-item"><span class="label">关于</span><span class="value">v1.0 ›</span></div>
+                `;
+            }
+            return '';
         }
 
         init();
