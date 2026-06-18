@@ -289,7 +289,7 @@
                 }
 
                 group.position.set(m.x, m.y, m.z);
-                group.userData = { ...m, baseY: m.y, ring: group.children[3] };
+                group.userData = { ...m, isMilestone: true, baseY: m.y, ring: group.children[3] };
                 
                 stars.push(group);
                 scene.add(group);
@@ -381,10 +381,10 @@
 
             // Star twinkle
             stars.forEach((s, i) => {
-                if (s.userData.core !== undefined) {
+                if (s.userData.isMilestone) {
                     // Milestone star
                     const scale = 1 + Math.sin(t * 1.5 + i) * 0.12;
-                    s.children[0].scale.set(scale, scale, scale);
+                    if (s.children[0]) s.children[0].scale.set(scale, scale, scale);
                     if (s.userData.ring) {
                         s.userData.ring.rotation.z = t * 0.4;
                         s.userData.ring.material.opacity = 0.3 + Math.sin(t * 2 + i) * 0.15;
